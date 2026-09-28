@@ -2,3 +2,6 @@ numpy
 pandas
 yfinance
 alpaca-py
+streamlit
+matplotlib
+groq
