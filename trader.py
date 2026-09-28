@@ -61,19 +61,33 @@ def obtener_datos_mercado():
       if data.empty:
         continue
 
-      # Aplanar columnas multi-index si las hay en yfinance
+      # Blindaje contra MultiIndex en yfinance
       if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
 
+      # Asegurar que las series sean unidimensionales
       close = data["Close"]
       if isinstance(close, pd.DataFrame):
         close = close.iloc[:, 0]
+      close = pd.Series(close.values.flatten(), index=close.index)
+
+      high = data["High"]
+      if isinstance(high, pd.DataFrame):
+        high = high.iloc[:, 0]
+      high = pd.Series(high.values.flatten(), index=high.index)
+
+      low = data["Low"]
+      if isinstance(low, pd.DataFrame):
+        low = low.iloc[:, 0]
+      low = pd.Series(low.values.flatten(), index=low.index)
+
+      clean_df = pd.DataFrame({"High": high, "Low": low, "Close": close})
 
       last_price = float(close.iloc[-1])
       ema20 = float(close.ewm(span=20, adjust=False).mean().iloc[-1])
       sma50 = float(close.rolling(window=50).mean().iloc[-1])
       rsi14 = float(calculate_rsi(close).iloc[-1])
-      atr14 = float(calculate_atr(data).iloc[-1])
+      atr14 = float(calculate_atr(clean_df).iloc[-1])
 
       resumen += (
           f"Activo: {symbol} | Precio: ${last_price:,.2f} | EMA20:"
@@ -104,7 +118,6 @@ def consultar_grok(datos_texto):
     No añadas explicaciones ni formato Markdown adicional.
     """
 
-  # Modelo actualizado y compatible con la API gratuita/estándar de Groq
   completion = client.chat.completions.create(
       model="llama-3.1-8b-instant",
       messages=[{"role": "user", "content": prompt}],
@@ -204,7 +217,6 @@ def procesar_senal(respuesta_grok, comision_pct=0.0005):
   df.to_csv(CSV_FILE, index=False)
   print(f"✅ [CSV Registrado] {senal} en {ticker} @ ${precio_entrada:,.2f}")
 
-  # Enviar orden real a Alpaca Paper
   enviar_orden_alpaca(ticker, unidades, "BUY" if senal == "LONG" else "SELL")
 
 
