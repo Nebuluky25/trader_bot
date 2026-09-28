@@ -6,6 +6,10 @@ on:
     - cron: '0 8 * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub cuando quieras
 
+# Permisos necesarios para que el bot pueda guardar los cambios en el repositorio
+permissions:
+  contents: write
+
 jobs:
   run-script:
     runs-on: ubuntu-latest
@@ -28,3 +32,10 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           python main.py
+
+      - name: Guardar cambios de CSV en GitHub
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Actualización automática de archivos y CSV del bot [skip ci]" && git push)
