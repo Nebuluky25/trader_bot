@@ -5,6 +5,9 @@ on:
     - cron: '0 9 * * *' # Se ejecuta todos los días a las 09:00 UTC
   workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
 
+permissions:
+  contents: write # 👈 NECESARIO para que GitHub Actions pueda guardar y hacer push del CSV actualizado
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -19,10 +22,21 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install requests pandas numpy yfinance
+          pip install --upgrade pip
+          pip install requests pandas numpy yfinance groq alpaca-py
 
       - name: Ejecutar script de trading
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} # 👈 AQUÍ ES DONDE SE CONECTA EL SECRET
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
+          APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
         run: |
           python trader.py
+
+      - name: Guardar y sincronizar cambios en el CSV
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add trades_history.csv
+          git diff --staged --quiet || git commit -m "Actualización automática de historial de trades [skip ci]"
+          git push
