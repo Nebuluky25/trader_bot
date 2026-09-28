@@ -2,11 +2,9 @@ name: Automatizacion Diaria Llama 3
 
 on:
   schedule:
-    # Se ejecuta todos los días a las 08:00 AM UTC
-    - cron: '0 8 * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub cuando quieras
+    - cron: '0 8 * * *' # Se ejecuta todos los días a las 08:00 AM UTC
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub
 
-# Permisos necesarios para que el bot pueda guardar los cambios en el repositorio
 permissions:
   contents: write
 
