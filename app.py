@@ -148,3 +148,6 @@ else:
 st.subheader("📋 Historial Local de Operaciones (CSV)")
 if df_csv is not None and not df_csv.empty:
     st.dataframe(df_csv, use_container_width=True)
+
+    #git pull
+    # streamlit run app.py
