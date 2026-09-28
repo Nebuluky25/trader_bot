@@ -20,12 +20,12 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Ejecutar Script
         env:
@@ -37,5 +37,5 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Actualización automática de archivos y CSV del bot [skip ci]" && git push)
+          git add trades_history.csv || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "📊 Actualización automática del CSV del bot [skip ci]" && git push)
