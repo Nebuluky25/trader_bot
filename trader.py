@@ -65,9 +65,7 @@ def fetch_and_format():
             )
 
             if data.empty:
-                output += (
-                    f"**{symbol}**: [ERROR - Sin datos devueltos por YFinance]\n"
-                )
+                output += f"**{symbol}**: [ERROR - Sin datos devueltos por YFinance]\n"
                 continue
 
             close = data["Close"].squeeze()
