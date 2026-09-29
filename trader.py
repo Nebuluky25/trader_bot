@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 from groq import Groq
+import yfinance as yf
 
 # SDK de Alpaca
 from alpaca.trading.client import TradingClient
