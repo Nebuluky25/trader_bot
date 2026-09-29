@@ -2,7 +2,7 @@ name: CIO Agencial Bot
 
 on:
   schedule:
-    - cron: '0 8 * * *' # Se ejecuta todos los días a las 08:00 AM UTC
+    - cron: '0 0 * * *' # Se ejecuta todos los días a las 08:00 AM UTC
   workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub
 
 # --- CONFIGURACIÓN CRÍTICA DE PERMISOS ---
