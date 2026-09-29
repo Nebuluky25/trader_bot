@@ -45,22 +45,14 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-
-        # Fetch y sincronización con la rama remota
+        
+        # Traer cambios remotos recientes
         git fetch origin main
-        git branch --set-upstream-to=origin/main main || true
-
-        # Intenta hacer rebase - si falla, aborta y sale con error
-        if ! git pull --rebase origin main; then
-          echo "❌ Conflicto al sincronizar con origin/main. Abortando rebase."
-          git rebase --abort
-          echo "El job falla para reintentar con la última versión remota en el próximo ciclo."
-          exit 1
-        fi
-
+        
+        # Rebasear nuestros cambios locales sobre main remoto
+        git rebase origin/main || git rebase --abort
+        
         git status
-
-        # Solo agrega y pushea si hay cambios en el CSV
         git add trades_history.csv
 
         if ! git diff --cached --quiet; then
