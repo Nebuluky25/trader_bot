@@ -4,11 +4,15 @@ import numpy as np
 import pandas as pd
 from groq import Groq
 import yfinance as yf
+from dotenv import load_dotenv
 
 # SDK de Alpaca
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.trading.requests import MarketOrderRequest
+
+# Cargar variables de entorno
+load_dotenv()
 
 # -------------------------------------------------------------------
 # CONFIGURACIÓN DE CREDENCIALES
