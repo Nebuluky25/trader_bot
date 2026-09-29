@@ -39,6 +39,8 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin main
+        git pull origin main --rebase
         git status
         git add trades_history.csv
         git diff --quiet && git diff --staged --quiet || (git commit -m "chore: actualizacion automatica de trades_history.csv [skip ci]" && git push origin HEAD:main)
