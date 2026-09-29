@@ -9,6 +9,11 @@ on:
 permissions:
   contents: write
 
+# Evita ejecutar múltiples instancias simultáneamente del mismo workflow
+concurrency:
+  group: trader-bot
+  cancel-in-progress: false
+
 jobs:
   run-trader:
     runs-on: ubuntu-latest
@@ -40,9 +45,29 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+        # Fetch y sincronización con la rama remota
         git fetch origin main
         git branch --set-upstream-to=origin/main main || true
-        git pull --rebase origin main || true
+
+        # Intenta hacer rebase - si falla, aborta y sale con error
+        if ! git pull --rebase origin main; then
+          echo "❌ Conflicto al sincronizar con origin/main. Abortando rebase."
+          git rebase --abort
+          echo "El job falla para reintentar con la última versión remota en el próximo ciclo."
+          exit 1
+        fi
+
         git status
+
+        # Solo agrega y pushea si hay cambios en el CSV
         git add trades_history.csv
-        git diff --quiet && git diff --staged --quiet || (git commit -m "chore: actualizacion automatica de trades_history.csv [skip ci]" && git push origin HEAD:main)
+
+        if ! git diff --cached --quiet; then
+          echo "✅ Cambios detectados. Haciendo commit y push..."
+          git commit -m "chore: actualizacion automatica de trades_history.csv [skip ci]"
+          git push origin HEAD:main
+          echo "✅ Push exitoso"
+        else
+          echo "ℹ️ Sin cambios en trades_history.csv"
+        fi
