@@ -39,8 +39,9 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         git fetch origin main
-        git pull origin main --rebase
+        git pull origin main --strategy-option theirs --no-edit || true
         git status
         git add trades_history.csv
         git diff --quiet && git diff --staged --quiet || (git commit -m "chore: actualizacion automatica de trades_history.csv [skip ci]" && git push origin HEAD:main)
