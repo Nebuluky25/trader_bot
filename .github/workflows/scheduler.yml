@@ -46,11 +46,15 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         
-        # Traer cambios remotos recientes
-        git fetch origin main
+        # 1. Guardar temporalmente el CSV modificado para limpiar el working directory
+        git stash
         
-        # Rebasear nuestros cambios locales sobre main remoto
-        git rebase origin/main || git rebase --abort
+        # 2. Traer cambios remotos y rebasear limpiamente
+        git fetch origin main
+        git rebase origin/main || { git rebase --abort; git stash pop; exit 1; }
+        
+        # 3. Restaurar nuestro CSV modificado
+        git stash pop || true
         
         git status
         git add trades_history.csv
