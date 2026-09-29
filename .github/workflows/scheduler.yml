@@ -47,11 +47,11 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         
         # 1. Guardar temporalmente el CSV modificado para limpiar el working directory
-        git stash
+        git stash --include-untracked
         
         # 2. Traer cambios remotos y rebasear limpiamente
         git fetch origin main
-        git rebase origin/main || { git rebase --abort; git stash pop; exit 1; }
+        git rebase origin/main
         
         # 3. Restaurar nuestro CSV modificado
         git stash pop || true
