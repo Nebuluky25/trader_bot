@@ -1,43 +1,41 @@
-name: Automatizacion Diaria Llama 3
+name: CIO Agencial Bot
 
 on:
   schedule:
-    - cron: '0 8 * * *' # Se ejecuta todos los días a las 08:00 AM UTC
-  workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub
-
-permissions:
-  contents: write
+    # Se ejecuta todos los días a una hora específica (ej. a las 8:00 UTC) o como lo tengas configurado
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions
 
 jobs:
-  run-script:
+  run-trader:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Clonar repositorio
-        uses: actions/checkout@v4
+    - name: Checkout del repositorio
+      uses: actions/checkout@v3
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas numpy yfinance requests groq alpaca-py
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas numpy yfinance groq alpaca-py
 
-      - name: Ejecutar Script de Trading
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
-          APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
-        run: |
-          python trader.py
+    - name: Ejecutar script de trading
+      env:
+        APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
+        APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: |
+        python trader.py
 
-      - name: Guardar cambios de CSV en GitHub
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git status
-          git add trades_history.csv || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "📊 Actualización automática del CSV del bot [skip ci]" && git push)
+    # --- PASO CLAVE PARA GUARDAR EL CSV EN GITHUB ---
+    - name: Guardar cambios del CSV en el repositorio
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add trades_history.csv
+        git diff --quiet && git diff --staged --quiet || (git commit -m "chore: actualizacion automatica de trades_history.csv [skip ci]" && git push)

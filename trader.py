@@ -170,14 +170,35 @@ def enviar_orden_alpaca(symbol, qty, side_str):
     print(f"❌ [Alpaca Error] {e}")
     return None
 
-
 def procesar_senal(respuesta_grok, comision_pct=0.0005):
   print("--- FASE 3: Procesando respuesta y registrando ---")
+  init_trade_log()
+
+  # Si la respuesta es HOLD o no tiene formato de orden, registramos el HOLD
   if "HOLD" in respuesta_grok or "," not in respuesta_grok:
-    print(f"ℹ️ Estado recibido de Grok: {respuesta_grok}. Sin operaciones nuevas.")
+    print(f"ℹ️ Estado recibido de Grok: {respuesta_grok}. Registrando HOLD.")
+    
+    df = pd.read_csv(CSV_FILE)
+    new_row = {
+        "Fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "Ticker": "SISTEMA",
+        "Tipo": "HOLD",
+        "Precio_Entrada": 0.0,
+        "Precio_Salida": None,
+        "Unidades": 0.0,
+        "Nocional_USD": 0.0,
+        "Stop_Loss": 0.0,
+        "Take_Profit": 0.0,
+        "Comision_USD": 0.0,
+        "PL_Neto_USD": 0.0,
+        "Estado": "SIN_OPERACION",
+    }
+    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    df.to_csv(CSV_FILE, index=False)
+    print("✅ [CSV Registrado] Estado HOLD guardado correctamente.")
     return
 
-  init_trade_log()
+  # Si SÍ hay una orden de compra/venta válida, procesa normal:
   partes = [p.strip() for p in respuesta_grok.split(",")]
   if len(partes) < 6:
     print(f"⚠️ Formato inválido recibido de Grok: {respuesta_grok}")
@@ -217,6 +238,7 @@ def procesar_senal(respuesta_grok, comision_pct=0.0005):
   df.to_csv(CSV_FILE, index=False)
   print(f"✅ [CSV Registrado] {senal} en {ticker} @ ${precio_entrada:,.2f}")
 
+  # Enviar orden real a Alpaca Paper
   enviar_orden_alpaca(ticker, unidades, "BUY" if senal == "LONG" else "SELL")
 
 
