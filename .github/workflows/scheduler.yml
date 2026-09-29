@@ -2,7 +2,7 @@ name: CIO Agencial Bot
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Se ejecuta todos los días a las 08:00 AM UTC
+    - cron: '0 0 * * *' # Se ejecuta todos los días a las 00:00 UTC
   workflow_dispatch: # Permite ejecutarlo manualmente desde la web de GitHub
 
 # --- CONFIGURACIÓN CRÍTICA DE PERMISOS ---
@@ -25,7 +25,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install pandas numpy yfinance groq alpaca-py
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install pandas numpy yfinance groq alpaca-py; fi
 
     - name: Ejecutar script de trading
       env:
