@@ -66,7 +66,6 @@ def obtener_datos_mercado():
       if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
 
-      # Asegurar que las series sean unidimensionales
       close = data["Close"]
       if isinstance(close, pd.DataFrame):
         close = close.iloc[:, 0]
@@ -102,7 +101,7 @@ def obtener_datos_mercado():
 
 # --- CONSULTA AUTOMÁTICA A GROQ ---
 def consultar_grok(datos_texto):
-  print("--- FASE 2: Consultando al CIO Agencial (Grok Llama 3) ---")
+  print("--- FASE 2: Consultando al CIO Agencial (Grok) ---")
   if not GROQ_API_KEY:
     raise ValueError("❌ No se encontró la GROQ_API_KEY en el entorno.")
 
@@ -119,8 +118,9 @@ def consultar_grok(datos_texto):
     No añadas explicaciones ni formato Markdown adicional.
     """
 
+  # Modelo actual compatible en Groq
   completion = client.chat.completions.create(
-      model="llama-3.1-8b-instant",
+      model="openai/gpt-oss-120b",
       messages=[{"role": "user", "content": prompt}],
       temperature=0.1,
   )
@@ -171,14 +171,13 @@ def enviar_orden_alpaca(symbol, qty, side_str):
     print(f"❌ [Alpaca Error] {e}")
     return None
 
+
 def procesar_senal(respuesta_grok, comision_pct=0.0005):
   print("--- FASE 3: Procesando respuesta y registrando ---")
   init_trade_log()
 
-  # Si la respuesta es HOLD o no tiene formato de orden, registramos el HOLD
   if "HOLD" in respuesta_grok or "," not in respuesta_grok:
     print(f"ℹ️ Estado recibido de Grok: {respuesta_grok}. Registrando HOLD.")
-    
     df = pd.read_csv(CSV_FILE)
     new_row = {
         "Fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -199,7 +198,6 @@ def procesar_senal(respuesta_grok, comision_pct=0.0005):
     print("✅ [CSV Registrado] Estado HOLD guardado correctamente.")
     return
 
-  # Si SÍ hay una orden de compra/venta válida, procesa normal:
   partes = [p.strip() for p in respuesta_grok.split(",")]
   if len(partes) < 6:
     print(f"⚠️ Formato inválido recibido de Grok: {respuesta_grok}")
@@ -239,7 +237,6 @@ def procesar_senal(respuesta_grok, comision_pct=0.0005):
   df.to_csv(CSV_FILE, index=False)
   print(f"✅ [CSV Registrado] {senal} en {ticker} @ ${precio_entrada:,.2f}")
 
-  # Enviar orden real a Alpaca Paper
   enviar_orden_alpaca(ticker, unidades, "BUY" if senal == "LONG" else "SELL")
 
 
