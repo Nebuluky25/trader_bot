@@ -2,11 +2,11 @@ name: Grok Daily Trader
 
 on:
   schedule:
-    - cron: '0 9 * * *' # Se ejecuta todos los días a las 09:00 UTC
-  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
+    - cron: '0 9 * * *'
+  workflow_dispatch:
 
 permissions:
-  contents: write # 👈 NECESARIO para que GitHub Actions pueda guardar y hacer push del CSV actualizado
+  contents: write
 
 jobs:
   run-bot:
@@ -22,16 +22,15 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install --upgrade pip
-          pip install requests pandas numpy yfinance groq alpaca-py
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
 
       - name: Ejecutar script de trading
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
           APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
-        run: |
-          python trader.py
+        run: python trader.py
 
       - name: Guardar y sincronizar cambios en el CSV
         run: |
